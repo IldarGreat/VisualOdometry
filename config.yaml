@@ -1,0 +1,22 @@
+camera:
+  fx: 718.8560
+  fy: 718.8560
+  cx: 607.1928
+  cy: 185.2157
+
+odometry:
+  detector: ORB # Possible values: ORB, FAST, Harris
+  descriptor: ORB # Possible values: ORB, SIFT
+  matcher: BFMatcher # Possible values: BFMatcher, FLANN
+  opticalFlow: None # Possible values: None, Farneback, PyrLK
+  methodForComputingE: RANSAC # Possible values: RANSAC, LMedS
+
+data:
+  liveCamera: None # Possible values: None, specify port
+  video: None # Possible values: None, specify path
+  images: data_set/images # Possible values: None, specify path
+  groundTruth: None # Possible values: None, specify path
+
+settings:
+  logs: None # Possible values: None, True
+  seeTracking: None # Possible values: None, True
