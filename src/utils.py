@@ -1,5 +1,3 @@
-import os
-
 import numpy as np
 import yaml
 
@@ -32,8 +30,15 @@ def get_data_information_from_config():
     with open('../config.yaml', 'r') as file:
         config = yaml.safe_load(file)
     camera_port = config['data']['liveCamera']
-    video_path= config['data']['video']
+    video_path = config['data']['video']
     images_path = config['data']['images']
     ground_truth_path = config['data']['groundTruth']
     return camera_port, video_path, images_path, ground_truth_path
 
+
+def get_settings_information_from_config():
+    with open('../config.yaml', 'r') as file:
+        config = yaml.safe_load(file)
+    logs = config['settings']['logs']
+    see_tracking = config['settings']['seeTracking']
+    return logs, see_tracking

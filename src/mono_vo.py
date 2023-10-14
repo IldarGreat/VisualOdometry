@@ -1,4 +1,5 @@
 import glob
+import logging
 import os.path
 import random
 from copy import copy
@@ -18,6 +19,9 @@ class IndirectVisualOdometry:
     def __init__(self):
         self.camera = Camera(get_camera_from_config())
 
+        self.logging, self.see_tracking = None, None
+        self.init_settings_parameters()
+
         self.detector, self.descriptor, self.mather, self.opticalFlow, self.methodForComputingE = None, None, None, None, None
         self.init_odometry_parameters()
 
@@ -30,12 +34,29 @@ class IndirectVisualOdometry:
 
         pass
 
+    def log(self, message):
+        if self.logging is True:
+            logging.info(message)
+
+    def init_settings_parameters(self):
+        logs, see_tracking = get_settings_information_from_config()
+        if logs:
+            logging.basicConfig(level=logging.INFO, filename="py_log.log", filemode="w",
+                                format="%(asctime)s %(levelname)s %(message)s")
+            self.logging = True
+            self.log("Logging is set to True")
+
+        if see_tracking:
+            self.see_tracking = True
+            self.log("See tracking is set to True")
+
     def init_data_parameters(self):
         camera_port, video_path, images_path, ground_truth_path = get_data_information_from_config()
         data_init = 0
         if camera_port != 'None':
             self.cap = cv2.VideoCapture(camera_port)
             data_init += 1
+            self.log("Camera is detected")
             if self.cap is None or not self.cap.isOpened():
                 raise Exception("Unable to open video source: {}".format(camera_port))
 
@@ -44,6 +65,7 @@ class IndirectVisualOdometry:
                 self.cap = cv2.VideoCapture(video_path)
                 ret, frame = self.cap.read(0)
                 data_init += 1
+                self.log("Video is detected")
                 if not ret:
                     raise Exception("Unable to read video file: {}".format(video_path))
             else:
@@ -55,6 +77,7 @@ class IndirectVisualOdometry:
                 cv2.imread(images_path + random_image_name)
                 self.images = [cv2.imread(file) for file in sort(glob.glob(images_path + "/*.png"))]
                 data_init += 1
+                self.log("Image are detected")
             else:
                 raise Exception("Unable to find images in: {}".format(images_path))
 
@@ -88,6 +111,7 @@ class IndirectVisualOdometry:
         if detector_name == 'ORB':
             self.detector = cv2.ORB_create(3000)
             init_parameters += 1
+            self.log("Using ORB detector")
         elif detector_name == 'SIFT':
             self.detector = cv2.SIFT_create(3000)
             init_parameters += 1
@@ -118,7 +142,7 @@ class IndirectVisualOdometry:
 
     def get_frame(self, index):
         if self.images is not None:
-            if len(self.images) < index:
+            if len(self.images) > index:
                 return self.images[index]
             else:
                 return None

@@ -18,5 +18,5 @@ data:
   groundTruth: None # Possible values: None, specify path
 
 settings:
-  logs: None # Possible values: None, True
-  seeTracking: None # Possible values: None, True
+  logs: True # Possible values: None, True
+  seeTracking: True # Possible values: None, True
