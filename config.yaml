@@ -9,12 +9,12 @@ odometry:
   descriptor: ORB # Possible values: ORB, SIFT
   matcher: BFMatcher # Possible values: BFMatcher, FLANN
   opticalFlow: None # Possible values: None, Farneback, PyrLK
-  methodForComputingE: RANSAC # Possible values: RANSAC, LMedS
+  methodForComputingE: RANSAC # Possible values: RANSAC, LMEDS
 
 data:
   liveCamera: None # Possible values: None, specify port
   video: None # Possible values: None, specify path
-  images: data_set/images # Possible values: None, specify path
+  images: ../data_set/images # Possible values: None, specify path
   groundTruth: None # Possible values: None, specify path
 
 settings:
