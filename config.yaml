@@ -5,8 +5,8 @@ camera:
   cy: 185.2157
 
 odometry:
-  detector: ORB # Possible values: ORB, FAST, Harris
-  descriptor: ORB # Possible values: ORB, SIFT
+  detector: ORB # Possible values: ORB, SIFT, AKAZE, BRISK, FAST, BLOB, SURF <- (for use SURF pip install opencv-contrib-python and you have to manually compile OpenCV with contrib-modules and OPENCV_ENABLE_NONFREE CMake flag turned on.)
+  descriptor: ORB # Possible values: ORB, SIFT, AKAZE, BRISK, SURF
   matcher: BFMatcher # Possible values: BFMatcher, FLANN
   opticalFlow: None # Possible values: None, Farneback, PyrLK
   methodForComputingE: RANSAC # Possible values: RANSAC, LMEDS
@@ -16,6 +16,7 @@ data:
   video: None # Possible values: None, specify path
   images: ../data_set/images # Possible values: None, specify path
   groundTruth: None # Possible values: None, specify path
+  groundTruthTemplate: None # Possible values: KITTI, None, Default
 
 settings:
   logs: True # Possible values: None, True
