@@ -1,23 +1,20 @@
 camera:
-  fx: 718.8560
-  fy: 718.8560
+  fx: 718.856
+  fy: 718.856
   cx: 607.1928
   cy: 185.2157
-
 odometry:
-  detector: ORB # Possible values: ORB, SIFT, AKAZE, BRISK, FAST, BLOB, SURF <- (for use SURF pip install opencv-contrib-python and you have to manually compile OpenCV with contrib-modules and OPENCV_ENABLE_NONFREE CMake flag turned on.)
-  descriptor: ORB # Possible values: ORB, SIFT, AKAZE, BRISK, SURF
-  matcher: BFMatcher # Possible values: BFMatcher, FLANN
-  opticalFlow: None # Possible values: None, Farneback, PyrLK
-  methodForComputingE: RANSAC # Possible values: RANSAC, LMEDS
-
+  detector: KAZE
+  descriptor: KAZE
+  matcher: BFMatcher
+  opticalFlow: None
+  methodForComputingE: RANSAC
 data:
-  liveCamera: None # Possible values: None, specify port
-  video: None # Possible values: None, specify path
-  images: ../data_set/images # Possible values: None, specify path
-  groundTruth: None # Possible values: None, specify path
-  groundTruthTemplate: None # Possible values: KITTI, None, Default
-
+  liveCamera: None
+  video: None
+  images: ../data_set/images/set1
+  groundTruth: ../data_set/gt_poses/00.txt
+  groundTruthTemplate: KITTI
 settings:
-  logs: True # Possible values: None, True
-  seeTracking: True # Possible values: None, True
+  logs: false
+  seeTracking: None

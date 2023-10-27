@@ -1,7 +1,6 @@
 import glob
 import logging
 import os.path
-import random
 from copy import copy
 
 from matplotlib import pyplot as plt
@@ -23,7 +22,7 @@ class IndirectVisualOdometry:
 
         self.detector, self.descriptor, self.mather, self.opticalFlow, self.methodForComputingE = init_odometry_params()
 
-        self.cap, self.images, self.ground_truth_path = None, None, None
+        self.cap, self.images, self.ground_truth = None, None, None
         self.init_data_parameters()
 
         self.position = Position()
@@ -41,7 +40,7 @@ class IndirectVisualOdometry:
             matched_images = cv2.drawMatches(previous_image, self.previous_feature.features, current_image,
                                              self.current_feature.features, matches[:50], None,
                                              flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-            cv2.imshow("Matched images", matched_images)
+            cv2.imshow("Matched set1", matched_images)
             cv2.waitKey(1)
 
     def init_settings_parameters(self):
@@ -80,8 +79,6 @@ class IndirectVisualOdometry:
 
         if images_path != 'None':
             if os.path.exists(images_path):
-                random_image_name = random.choice(os.listdir(images_path))
-                cv2.imread(images_path + random_image_name)
                 self.images = [cv2.imread(file) for file in sort(glob.glob(images_path + "/*.png"))]
                 data_init += 1
                 self.log("Image are detected")
@@ -90,8 +87,15 @@ class IndirectVisualOdometry:
 
         if ground_truth_path != 'None':
             if os.path.exists(ground_truth_path):
-                print(0)  # TODO
-                self.ground_truth_path = ground_truth_path
+                with open(ground_truth_path) as f:
+                    lines = f.readlines()
+                    self.ground_truth = Position()
+                    for line in lines:
+                        if ground_truth_template == 'KITTI':
+                            position = np.array(line.split()).reshape((3, 4)).astype(np.float32)
+                            self.ground_truth.append_x(position[0, 3])
+                            self.ground_truth.append_y(position[1, 3])
+                            self.ground_truth.append_z(position[2, 3])
             else:
                 raise Exception("Unable to find poses in: {}".format(ground_truth_path))
 
@@ -129,12 +133,18 @@ class IndirectVisualOdometry:
 
         return matches, matched_features_from_previous_image, matched_features_from_current_image
 
-    def recover_pose(self, matched_features_from_previous_image, matched_features_from_current_image):
+    def recover_pose(self, matched_features_from_previous_image, matched_features_from_current_image, index):
         E, mask = cv2.findEssentialMat(matched_features_from_previous_image, matched_features_from_current_image,
                                        self.camera.matrix, self.methodForComputingE)
         points, R, t, mask = cv2.recoverPose(E, matched_features_from_previous_image,
                                              matched_features_from_current_image, self.camera.matrix)
-        return R, t
+        scale = 1
+        if self.ground_truth is not None:
+            px, py, pz = self.ground_truth.get_x_y_z(index - 1)
+            cx, cy, cz = self.ground_truth.get_x_y_z(index)
+            dif = np.power((px - cx), 2.0) + np.power((pz - cz), 2.0)
+            scale = np.sqrt(dif)
+        return R, t, scale
 
     def start(self):
         index = 0
@@ -152,8 +162,8 @@ class IndirectVisualOdometry:
 
             matches, matched_features_from_previous_image, matched_features_from_current_image = self.get_matched_features()
 
-            R, t = self.recover_pose(matched_features_from_previous_image, matched_features_from_current_image)
-            self.position.update(R, t)
+            R, t, scale = self.recover_pose(matched_features_from_previous_image, matched_features_from_current_image, index)
+            self.position.update(R, t, scale)
 
             self.draw_matches(previous_image, current_image, matches)
 
@@ -166,13 +176,13 @@ class IndirectVisualOdometry:
         fig = plt.figure()
         ax = fig.add_subplot()
         ax.set_title(
-            "Detector: {},\ndescriptor: {},\nmatcher: {}".format("ORB", "ORB", "FLANN"))
-        plt.plot(odometry.position.x_arr, odometry.position.y_arr)
+            "Detector: {},\ndescriptor: {}".format(str(self.detector), str(self.descriptor)))
+        plt.plot(self.position.x_arr, self.position.z_arr, color='r', label='Estimated poses')
+        plt.plot(self.ground_truth.x_arr, self.ground_truth.z_arr, color='g', label='Ground true poses')
         plt.show()
         cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
-    camera = Camera(get_camera_from_config())
     odometry = IndirectVisualOdometry()
     odometry.start()

@@ -52,7 +52,7 @@ def init_odometry_params():
 
     if descriptor_name == 'ORB':
         descriptor = cv2.ORB_create(3000)
-        norm_type_for_BFM = cv2.NORM_HAMMING
+        norm_type_for_BFM = cv2.NORM_L2
         index_params_forFLANN = dict(algorithm=6, table_number=6, key_size=12, multi_probe_level=1)
         init_parameters += 1
     elif descriptor_name == 'SIFT':
@@ -62,7 +62,11 @@ def init_odometry_params():
         init_parameters += 1
     elif descriptor_name == 'AKAZE':
         descriptor = cv2.AKAZE_create()
-        norm_type_for_BFM = cv2.NORM_HAMMING
+        norm_type_for_BFM = cv2.NORM_L2
+        init_parameters += 1
+    elif descriptor_name == 'KAZE':
+        descriptor = cv2.KAZE_create()
+        norm_type_for_BFM = cv2.NORM_L2
         init_parameters += 1
     elif descriptor_name == 'BRISK':
         descriptor = cv2.BRISK_create(3000)
@@ -74,10 +78,13 @@ def init_odometry_params():
         init_parameters += 1
 
     if detector_name == 'ORB':
-        detector = cv2.ORB_create(3000)
+        detector = cv2.ORB_create(1000)
         init_parameters += 1
     elif detector_name == 'SIFT':
         detector = cv2.SIFT_create(3000)
+        init_parameters += 1
+    elif detector_name == 'KAZE':
+        detector = cv2.KAZE_create(3000)
         init_parameters += 1
     elif detector_name == 'AKAZE':
         detector = cv2.AKAZE_create()
