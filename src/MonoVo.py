@@ -124,12 +124,18 @@ class IndirectVisualOdometry:
             self.current_feature.init(features, descriptors)
 
     def get_matched_features(self):
-        matches = self.mather.match(self.previous_feature.descriptors, self.current_feature.descriptors)
+        matches = self.mather.knnMatch(self.previous_feature.descriptors, self.current_feature.descriptors, k=2)
+        good = []
+        for m, n in matches:
+            if m.distance < 0.5 * n.distance:
+                good.append(m)
 
-        matched_features_from_previous_image = np.float32(
-            [self.previous_feature.features[m.queryIdx].pt for m in matches])
-        matched_features_from_current_image = np.float32(
-            [self.current_feature.features[m.trainIdx].pt for m in matches])
+        matched_features_from_previous_image = np.float32([self.previous_feature.features[m.queryIdx].pt for m in good])
+        matched_features_from_current_image = np.float32([self.current_feature.features[m.trainIdx].pt for m in good])
+        #matched_features_from_previous_image = np.float32(
+        #    [self.previous_feature.features[m.queryIdx].pt for m in matches])
+        #matched_features_from_current_image = np.float32(
+        #    [self.current_feature.features[m.trainIdx].pt for m in matches])
 
         return matches, matched_features_from_previous_image, matched_features_from_current_image
 
@@ -139,12 +145,19 @@ class IndirectVisualOdometry:
         points, R, t, mask = cv2.recoverPose(E, matched_features_from_previous_image,
                                              matched_features_from_current_image, self.camera.matrix)
         scale = 1
-        if self.ground_truth is not None:
+        if self.ground_truth is not None and index <= len(self.ground_truth.x_arr) - 1:
             px, py, pz = self.ground_truth.get_x_y_z(index - 1)
             cx, cy, cz = self.ground_truth.get_x_y_z(index)
             dif = np.power((px - cx), 2.0) + np.power((pz - cz), 2.0)
             scale = np.sqrt(dif)
         return R, t, scale
+
+    # WEIRD
+    def mse(self):
+        x_error = ((np.array(self.position.x_arr) - np.array(self.ground_truth.x_arr)) ** 2).mean(axis=0)
+        #y_error = ((np.array(self.position.y_arr) - np.array(self.ground_truth.y_arr)) ** 2).mean(axis=0)
+        z_error = ((np.array(self.position.z_arr) - np.array(self.ground_truth.z_arr)) ** 2).mean(axis=0)
+        return x_error + z_error # + y_error
 
     def start(self):
         index = 0
@@ -162,7 +175,8 @@ class IndirectVisualOdometry:
 
             matches, matched_features_from_previous_image, matched_features_from_current_image = self.get_matched_features()
 
-            R, t, scale = self.recover_pose(matched_features_from_previous_image, matched_features_from_current_image, index)
+            R, t, scale = self.recover_pose(matched_features_from_previous_image, matched_features_from_current_image,
+                                            index)
             self.position.update(R, t, scale)
 
             self.draw_matches(previous_image, current_image, matches)

@@ -14,7 +14,7 @@ class Position:
         self.current_pos += self.current_rot.dot(t) * scale
         self.current_rot = R.dot(self.current_rot)
         self.x_arr.append(self.get_current_x())
-        self.y_arr.append(self.get_current_y())
+        self.y_arr.append((-1)*self.get_current_y())
         self.z_arr.append((-1)*self.get_current_z())
 
     def get_current_x(self):

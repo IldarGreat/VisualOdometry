@@ -4,10 +4,10 @@ camera:
   cx: 607.1928
   cy: 185.2157
 odometry:
-  detector: KAZE
-  descriptor: KAZE
-  matcher: BFMatcher
-  opticalFlow: None
+  detector: SIFT
+  descriptor: AKAZE
+  matcher: FLANN
+  opticalFlow: LK
   methodForComputingE: RANSAC
 data:
   liveCamera: None
