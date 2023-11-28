@@ -1,5 +1,6 @@
 # VisualOdometry
-![image](https://github.com/IldarGreat/VisualOdometry/assets/90307025/24f5c725-4519-49f9-a303-9fc8edcc6ed4)
+![image](https://github.com/IldarGreat/VisualOdometry/assets/90307025/dca96aed-b714-4d80-ad25-337e0bc28656)
+
 
 <h2>Config yaml file</h2>
 The config file (config.yaml) is located in the root of the project and allows you to configure the basic parameters of odometry, camera and so on <br>
