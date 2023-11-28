@@ -1,19 +1,20 @@
 camera:
+  calibFile: ../data_set/images/kitti/00/calib.txt
   fx: 718.856
   fy: 718.856
   cx: 607.1928
   cy: 185.2157
 odometry:
-  detector: SIFT
-  descriptor: AKAZE
+  detector: ORB
+  descriptor: ORB
   matcher: FLANN
-  opticalFlow: LK
+  opticalFlow: None
   methodForComputingE: RANSAC
 data:
   liveCamera: None
   video: None
-  images: ../data_set/images/set1
-  groundTruth: ../data_set/gt_poses/00.txt
+  images: ../data_set/images/kitti/00/image_0
+  groundTruth: ../data_set/gt_poses/kitti/00.txt
   groundTruthTemplate: KITTI
 settings:
   logs: false

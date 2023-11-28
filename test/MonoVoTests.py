@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import yaml
 import time
-from src.MonoVo import IndirectVisualOdometry
+from src.mono_vo import IndirectVisualOdometry
 
 
 def read_and_modify_one_block_of_yaml_data(filename, key, value):
@@ -32,7 +32,7 @@ if __name__ == '__main__':
                 start_time = time.time()
                 odometry.start()
                 avg_time.append(time.time() - start_time)
-                error.append(odometry.mse())
+                #error.append(odometry.mse())
             except Exception as e:
                 avg_time.append(np.NAN)
                 error.append(np.NAN)
