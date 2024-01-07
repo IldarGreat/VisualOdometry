@@ -6,7 +6,7 @@ import numpy as np
 import yaml
 from numpy import sort
 
-from src.entity.position import Position
+from entity.position import Position
 
 
 def get_camera_from_config():
@@ -163,7 +163,9 @@ def init_data_parameters():
 
     if images_path != 'None':
         if os.path.exists(images_path):
+            print("Start reading images")
             images = [cv2.imread(file) for file in sort(glob.glob(images_path + "/*.png"))]
+            print("Done")
             data_init += 1
         else:
             raise Exception("Unable to find images in: {}".format(images_path))

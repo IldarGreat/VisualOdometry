@@ -15,7 +15,7 @@ class Position:
         self.current_rot = R.dot(self.current_rot)
         self.x_arr.append(self.get_current_x())
         self.y_arr.append(self.get_current_y())
-        self.z_arr.append((-1)*self.get_current_z())
+        self.z_arr.append(self.get_current_z())
 
     def get_current_x(self):
         return self.current_pos[0][0]
@@ -24,7 +24,7 @@ class Position:
         return self.current_pos[1][0]
 
     def get_current_z(self):
-        return self.current_pos[2][0]
+        return self.current_pos[2][0] * (-1)
 
     def append_x(self, x):
         self.x_arr.append(x)

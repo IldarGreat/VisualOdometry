@@ -3,14 +3,15 @@ from copy import copy
 
 from matplotlib import pyplot as plt
 
-from src.entity.camera import Camera
-from src.entity.feature import Feature
-from src.utils.config_utils import *
-
+from entity.camera import Camera
+from entity.feature import Feature
+from utils.compute_utils import compute_error
+from utils.config_utils import *
 
 lk_params = dict(winSize=(21, 21),
-                     criteria=(cv2.TERM_CRITERIA_EPS |
-                               cv2.TERM_CRITERIA_COUNT, 30, 0.03))
+                 criteria=(cv2.TERM_CRITERIA_EPS |
+                           cv2.TERM_CRITERIA_COUNT, 30, 0.03))
+
 
 class IndirectVisualOdometry:
 
@@ -56,22 +57,18 @@ class IndirectVisualOdometry:
             self.current_feature.init(features, descriptors)
 
     def get_matched_features(self, index):
-        px_ref = np.array([x.pt for x in self.previous_feature.features], dtype=np.float32)
-        kp2, st, err = cv2.calcOpticalFlowPyrLK(self.get_frame(index-1), self.get_frame(index), px_ref, None, **lk_params)
-        st = st.reshape(st.shape[0])
-        kp1 = px_ref[st == 1]
-        kp2 = kp2[st == 1]
-        #matches = self.mather.knnMatch(self.previous_feature.descriptors, self.current_feature.descriptors, k=2)
-        #good = []
-        #for m, n in matches:
-        #    if m.distance < 0.5 * n.distance:
-        #        good.append(m)
         #
-        #kp1 = np.float32([self.previous_feature.features[m.queryIdx].pt for m in good])
-        #kp2 = np.float32([self.current_feature.features[m.trainIdx].pt for m in good])
+        matches = self.mather.knnMatch(self.previous_feature.descriptors, self.current_feature.descriptors, k=2)
+        good = []
+        for m, n in matches:
+            if m.distance < 0.5 * n.distance:
+                good.append(m)
 
-        #return matches, kp1, kp2
-        return kp1, kp2
+        kp1 = np.float32([self.previous_feature.features[m.queryIdx].pt for m in good])
+        kp2 = np.float32([self.current_feature.features[m.trainIdx].pt for m in good])
+
+        return matches, kp1, kp2
+        # return kp1, kp2
 
     def recover_pose(self, matched_features_from_previous_image, matched_features_from_current_image, index):
         E, mask = cv2.findEssentialMat(matched_features_from_previous_image, matched_features_from_current_image,
@@ -88,41 +85,44 @@ class IndirectVisualOdometry:
 
     def start(self):
         index = 0
-        previous_image = None
-        while True:
-            print(index)
-            current_image = self.get_frame(index)
-            if current_image is None:
-                break
-            self.process_frame(current_image, index)
+        plt.ion()
+        fig, (ax1, ax2) = plt.subplots(2)
+        # previous_image = None
+        with open('../test/matching_results/indirect/result1.txt', 'w') as f:
+            while True:
+                current_image = self.get_frame(index)
+                if current_image is None:
+                    break
+                self.process_frame(current_image, index)
 
-            if index == 0:
+                if index == 0:
+                    index += 1
+                    # previous_image = copy(current_image)
+                    continue
+
+                matches, matched_features_from_previous_image, matched_features_from_current_image = self.get_matched_features(
+                    index)
+
+                R, t, scale = self.recover_pose(matched_features_from_previous_image,
+                                                matched_features_from_current_image,
+                                                index)
+                self.position.update(R, t, scale)
+                ax1.plot(self.position.get_current_x(), self.position.get_current_z(), 'ro')
+                ax1.plot(self.ground_truth.get_x_y_z(index-1)[0], self.ground_truth.get_x_y_z(index-1)[2], 'bo')
+                ax2.plot(index,
+                         compute_error(self.position.get_x_y_z(index - 1), self.ground_truth.get_x_y_z(index - 1),
+                                       'MSE'), 'ro')
+                plt.draw()
+                plt.pause(0.01)
+
                 index += 1
-                previous_image = copy(current_image)
-                continue
-
-            matched_features_from_previous_image, matched_features_from_current_image = self.get_matched_features(index)
-
-            R, t, scale = self.recover_pose(matched_features_from_previous_image, matched_features_from_current_image,
-                                            index)
-            self.position.update(R, t, scale)
-
-            #self.draw_matches(previous_image, current_image, matches)
-
-            #self.log("\nx: {}\n y: {}\n z: {}\n index: {}".format(self.position.get_current_x(),
-                                                                 # self.position.get_current_y(),
-                                                                  #self.position.get_current_z(), index))
-            index += 1
-            self.previous_feature = copy(self.current_feature)
-            previous_image = copy(current_image)
-        fig = plt.figure()
-        ax = fig.add_subplot()
-        ax.set_title(
-            "Detector: {},\ndescriptor: {}".format(str(self.detector), str(self.descriptor)))
-        plt.plot(self.position.x_arr, self.position.z_arr, color='r', label='Estimated kitti')
-        plt.plot(self.ground_truth.x_arr, self.ground_truth.z_arr, color='g', label='Ground true kitti')
-        plt.show()
-        cv2.destroyAllWindows()
+                self.previous_feature = copy(self.current_feature)
+                # previous_image = copy(current_image)
+                data = str(
+                    index) + ' ' + str(self.position.get_current_x()) + ' ' + str(
+                    self.position.get_current_y()) + ' ' + str(self.position.get_current_z())
+                print(data)
+                f.write(data + '\n')
 
 
 if __name__ == '__main__':

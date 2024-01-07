@@ -1,5 +1,5 @@
 camera:
-  calibFile: ../data_set/images/kitti/00/calib.txt
+  calibFile: ../data_set/images/kitti/09/calib.txt
   fx: 718.856
   fy: 718.856
   cx: 607.1928
